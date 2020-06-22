@@ -1,5 +1,5 @@
 /*
- * $Id: LuaState.java,v 1.11 2007/09/17 19:28:40 thiago Exp $
+ * $Id: LuaState.java,v 1.11 2007-09-17 19:28:40 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -60,10 +60,10 @@ public class LuaState
    */
 
   final public static Integer LUA_YIELD    = new Integer(1);
-
+  
   /** a runtime error. */
   final public static Integer LUA_ERRRUN     = new Integer(2);
-
+  
   /** syntax error during pre-compilation. */
   final public static Integer LUA_ERRSYNTAX = new Integer(3);
 
@@ -858,7 +858,7 @@ public class LuaState
    * @param obj
    */
   private synchronized native void _pushJavaObject(CPtr L, Object obj);
-
+  
   /**
    * Pushes a Java Array into the state stack
    * @param L
@@ -912,12 +912,12 @@ public class LuaState
   {
     _pushJavaObject(luaState, obj);
   }
-
+  
   public void pushJavaArray(Object obj) throws LuaException
   {
 	  if (!obj.getClass().isArray())
 		  throw new LuaException("Object is not an array.");
-
+	  
 	  _pushJavaArray(luaState, obj);
   }
 
@@ -974,6 +974,10 @@ public class LuaState
     {
       LuaObject ref = (LuaObject) obj;
       ref.push();
+    }
+    else if (obj.getClass().isArray())
+    {
+   	 pushJavaArray(obj);
     }
     else if (obj.getClass().isArray())
     {

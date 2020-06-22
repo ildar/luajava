@@ -1,6 +1,6 @@
 // build@ javac -cp \java\luajava\src\java LuaJavaAPI.java
 /*
- * $Id: LuaJavaAPI.java,v 1.5 2007/04/17 23:47:50 thiago Exp $
+ * $Id: LuaJavaAPI.java,v 1.5 2007-04-17 23:47:50 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -69,7 +69,7 @@ public final class LuaJavaAPI
 
   /**
    * Java implementation of the metamethod __index for normal objects
-   *
+   * 
    * @param luaState int that indicates the state used
    * @param obj Object to be indexed
    * @param methodName the name of the method
@@ -85,7 +85,7 @@ public final class LuaJavaAPI
       int top = L.getTop();
       Object[] objs = new Object[top - 1];
       Method method = null;
-      Class clazz; 
+      Class clazz;
       Object ret; 
       
       if (obj instanceof Class)
@@ -188,11 +188,14 @@ public final class LuaJavaAPI
     LuaState L = LuaStateFactory.getExistingState(luaState);
 
     synchronized (L) { 
-      try {
-    	  L.pushObjectValue(Array.get(obj, index - 1));
-      } catch (Exception e) { 
-    	  throwLuaException(L,e.getMessage());  
-      }
+      if (!obj.getClass().isArray())
+        throw new LuaException("Object indexed is not an array.");
+	  
+      if (Array.getLength(obj) < index)
+        throw new LuaException("Index out of bounds.");
+	  
+      L.pushObjectValue(Array.get(obj, index - 1));
+	  
       return 1;
     }
   }
@@ -233,10 +236,10 @@ public final class LuaJavaAPI
     }
   }
 
-
+  
   /**
    * Java function to be called when a java object metamethod __newindex is called.
-   *
+   * 
    * @param luaState int that represents the state to be used
    * @param object to be used
    * @param fieldName name of the field to be set
@@ -268,15 +271,15 @@ public final class LuaJavaAPI
       }
       catch (Exception e)
       {
-        throwLuaException(L,"Error accessing field." + e.getMessage());
+        throw new LuaException("Error accessing field.", e);
       }
-
+      
       Class type = field.getType();
       Object setObj = compareTypes(L, type, 3);
-
+      
       if (field.isAccessible())
         field.setAccessible(true);
-
+      
       try
       {
         field.set(obj, setObj);

@@ -1,5 +1,5 @@
 /*
- * $Id: LuaObject.java,v 1.7 2007/09/17 19:28:40 thiago Exp $
+ * $Id: LuaObject.java,v 1.7 2007-09-17 19:28:40 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -229,7 +229,7 @@ public class LuaObject
 	}
 
 	/**
-	 * Pushes the object represented by <code>this<code> into L's stack
+	 * Pushes the object represented by <code>this</code> into L's stack
 	 */
 	public void push()
 	{
@@ -391,7 +391,7 @@ public class LuaObject
 	}
 
 	/**
-	 * If <code>this<code> is a table or userdata tries to get
+	 * If <code>this</code> is a table or userdata tries to get
 	 * a field value.
 	 */
 	public LuaObject getField(String field) throws LuaException
