@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2004 Kepler Project.
+* Copyright (C) 2003-2007 Kepler Project.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the
@@ -23,9 +23,6 @@
 
 package org.keplerproject.luajava.test;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import org.keplerproject.luajava.LuaException;
 import org.keplerproject.luajava.LuaObject;
 import org.keplerproject.luajava.LuaState;
@@ -43,8 +40,7 @@ public class Main
 	"luaPrint={implements='org.keplerproject.luajava.test.Printable', print=function(str)print('Printing from lua :'..str)end  }";
 
 
-  public static void main(String[] main_args)
-    throws IOException, FileNotFoundException, ClassNotFoundException, LuaException
+  public static void main(String[] main_args) throws LuaException, ClassNotFoundException
   {
   	LuaState L = LuaStateFactory.newLuaState();
   	L.openBase();

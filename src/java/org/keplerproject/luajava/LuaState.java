@@ -1,5 +1,5 @@
 /*
- * $Id: LuaState.java,v 1.9 2006-12-22 14:06:40 thiago Exp $
+ * $Id: LuaState.java,v 1.11 2007-09-17 19:28:40 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -58,19 +58,13 @@ public class LuaState
   /*
    * error codes for `lua_load' and `lua_pcall'
    */
-  /**
-   * a runtime error.
-   */
-  final public static Integer LUA_ERRRUN    = new Integer(1);
   
-  /**
-   * 
-   */
-  final public static Integer LUA_YIELD     = new Integer(2);
+  final public static Integer LUA_YIELD    = new Integer(1);
   
-  /**
-   * syntax error during pre-compilation.
-   */
+  /** a runtime error. */
+  final public static Integer LUA_ERRRUN     = new Integer(2);
+  
+  /** syntax error during pre-compilation. */
   final public static Integer LUA_ERRSYNTAX = new Integer(3);
   
   /**
@@ -250,7 +244,7 @@ public class LuaState
 
 
   // LuaLibAux
-  private synchronized native int _LdoFile(CPtr ptr, String fileName);
+  private static synchronized native int _LdoFile(CPtr ptr, String fileName);
   private synchronized native int _LdoString(CPtr ptr, String string);
   //private synchronized native int _doBuffer(CPtr ptr, byte[] buff, long sz, String n);
   
@@ -866,6 +860,13 @@ public class LuaState
   private synchronized native void _pushJavaObject(CPtr L, Object obj);
 
   /**
+   * Pushes a Java Array into the state stack
+   * @param L
+   * @param obj
+   */
+  private synchronized native void _pushJavaArray(CPtr L, Object obj);
+
+  /**
    * Pushes a JavaFunction into the state stack
    * @param L
    * @param func
@@ -910,6 +911,14 @@ public class LuaState
   public void pushJavaObject(Object obj)
   {
     _pushJavaObject(luaState, obj);
+  }
+
+  public void pushJavaArray(Object obj) throws LuaException
+  {
+	  if (!obj.getClass().isArray())
+		  throw new LuaException("Object is not an array.");
+	  
+	  _pushJavaArray(luaState, obj);
   }
 
   /**
@@ -969,6 +978,10 @@ public class LuaState
     else if (obj instanceof byte[])
     {
       pushString((byte[]) obj);
+    }
+    else if (obj.getClass().isArray())
+    {
+   	 pushJavaArray(obj);
     }
     else
     {
