@@ -1,5 +1,5 @@
 /*
- * $Id: LuaException.java,v 1.7 2007-04-17 23:47:50 thiago Exp $
+ * $Id: LuaException.java,v 1.7 2007/04/17 23:47:50 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining

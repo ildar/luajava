@@ -1,5 +1,6 @@
+// build@ javac -cp \java\luajava\src\java LuaJavaAPI.java
 /*
- * $Id: LuaJavaAPI.java,v 1.5 2007-04-17 23:47:50 thiago Exp $
+ * $Id: LuaJavaAPI.java,v 1.5 2007/04/17 23:47:50 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -27,8 +28,11 @@ package org.keplerproject.luajava;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class that contains functions accessed by lua.
@@ -66,10 +70,8 @@ public final class LuaJavaAPI
     synchronized (L)
     {
       int top = L.getTop();
-
       Object[] objs = new Object[top - 1];
       Method method = null;
-
       Class clazz;
 
       if (obj instanceof Class)
@@ -77,60 +79,23 @@ public final class LuaJavaAPI
         clazz = (Class) obj;
         // First try. Static methods of the object
         method = getMethod(L, clazz, methodName, objs, top);
-        
+
         if (method == null)
       	  clazz = Class.class;
-        
+
         // Second try. Methods of the Class class
         method = getMethod(L, clazz, methodName, objs, top);
-      }
+          }
       else
-      {
+        {
         clazz = obj.getClass();
         method = getMethod(L, clazz, methodName, objs, top);
       }
 
-/*      Method[] methods = clazz.getMethods();
-      Method method = null;
-
-      // gets method and arguments
-      for (int i = 0; i < methods.length; i++)
-      {
-        if (!methods[i].getName().equals(methodName))
-
-          continue;
-
-        Class[] parameters = methods[i].getParameterTypes();
-        if (parameters.length != top - 1)
-          continue;
-
-        boolean okMethod = true;
-
-        for (int j = 0; j < parameters.length; j++)
-        {
-          try
-          {
-            objs[j] = compareTypes(L, parameters[j], j + 2);
-          }
-          catch (Exception e)
-          {
-            okMethod = false;
-            break;
-          }
-        }
-
-        if (okMethod)
-        {
-          method = methods[i];
-          break;
-        }
-
-      }*/
-
       // If method is null means there isn't one receiving the given arguments
       if (method == null)
       {
-        throw new LuaException("Invalid method call. No such method.");
+        throwLuaException(L,"No such method: "+methodName);
       }
 
       Object ret = null;
@@ -150,6 +115,10 @@ public final class LuaJavaAPI
         {
           ret = method.invoke(obj, objs);
         }
+      }
+      catch (InvocationTargetException e) {
+    	  Throwable cause = e.getCause();
+    	  throwLuaException(L,methodName+" "+(cause!=null?cause.getMessage():"unknown error"));
       }
       catch (Exception e)
       {
@@ -181,14 +150,12 @@ public final class LuaJavaAPI
   {
     LuaState L = LuaStateFactory.getExistingState(luaState);
 
-    synchronized (L)
-    {
-
+    synchronized (L) {
       if (!obj.getClass().isArray())
-        throw new LuaException("Object indexed is not an array.");
-	  
+        throwLuaException(L,"Object indexed is not an array.");
+
       if (Array.getLength(obj) < index)
-        throw new LuaException("Index out of bounds.");
+        throwLuaException(L,"Index out of bounds.");
 	  
       L.pushObjectValue(Array.get(obj, index - 1));
 	  
@@ -267,7 +234,7 @@ public final class LuaJavaAPI
       }
       catch (Exception e)
       {
-        throw new LuaException("Error accessing field.", e);
+        throwLuaException(L,"Error accessing field." + e.getMessage());
       }
       
       Class type = field.getType();
@@ -282,11 +249,11 @@ public final class LuaJavaAPI
       }
       catch (IllegalArgumentException e)
       {
-        throw new LuaException("Ilegal argument to set field.", e);
+        throwLuaException(L,"Ilegal argument to set field." + e.getMessage());
       }
       catch (IllegalAccessException e)
       {
-        throw new LuaException("Field not accessible.", e);
+        throwLuaException(L,"Field not accessible." + e.getMessage());
       }
     }
     
@@ -312,10 +279,10 @@ public final class LuaJavaAPI
     synchronized (L)
     {
       if (!obj.getClass().isArray())
-        throw new LuaException("Object indexed is not an array.");
-  	  
+        throwLuaException(L,"Object indexed is not an array.");
+
       if (Array.getLength(obj) < index)
-        throw new LuaException("Index out of bounds.");
+        throwLuaException(L,"Index out of bounds.");
 
       Class type = obj.getClass().getComponentType();
       Object setObj = compareTypes(L, type, 3);
@@ -363,7 +330,7 @@ public final class LuaJavaAPI
    * javaNew returns a new instance of a given clazz
    * 
    * @param luaState int that represents the state to be used
-   * @param clazz class to be instanciated
+   * @param clazz class to be instantiated
    * @return number of returned objects
    * @throws LuaException
    */
@@ -472,7 +439,7 @@ public final class LuaJavaAPI
 	    // If method is null means there isn't one receiving the given arguments
 	    if (constructor == null)
 	    {
-	      throwLuaException(L,"Invalid method call. No such method.");
+	      throwLuaException(L,"No such constructor for "+clazz);
 	    }
 	
 	    Object ret = null;
@@ -735,19 +702,25 @@ public final class LuaJavaAPI
     return obj;
   }
 
+  static Map<Class,Method[]> classCache = new HashMap<Class,Method[]>();
+
   private static Method getMethod(LuaState L, Class clazz, String methodName, Object[] retObjs, int top)
   {
      Object[] objs = new Object[top - 1];
 
-     Method[] methods = clazz.getMethods();
+     Method[] methods = classCache.get(clazz);
+     if (methods == null) {
+    	 methods = clazz.getMethods();
+    	 classCache.put(clazz, methods);
+     }
      Method method = null;
 
      // gets method and arguments
      for (int i = 0; i < methods.length; i++)
      {
-       if (!methods[i].getName().equals(methodName))
-
+       if (! methods[i].getName().equals(methodName)) {
          continue;
+       }
 
        Class[] parameters = methods[i].getParameterTypes();
        if (parameters.length != top - 1)
@@ -778,6 +751,7 @@ public final class LuaJavaAPI
        }
 
 }	  
+
 	  return method;
   }
 }

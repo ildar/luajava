@@ -1,5 +1,5 @@
 /*
- * $Id: LuaState.java,v 1.11 2007-09-17 19:28:40 thiago Exp $
+ * $Id: LuaState.java,v 1.11 2007/09/17 19:28:40 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -33,7 +33,7 @@ package org.keplerproject.luajava;
  */
 public class LuaState
 {
-  private final static String LUAJAVA_LIB = "luajava-1.1";
+  private final static String LUAJAVA_LIB = "luajava";
 
   final public static Integer LUA_GLOBALSINDEX  = new Integer(-10002);
   final public static Integer LUA_REGISTRYINDEX = new Integer(-10000);
@@ -975,9 +975,9 @@ public class LuaState
       LuaObject ref = (LuaObject) obj;
       ref.push();
     }
-    else if (obj instanceof byte[])
+    else if (obj.getClass().isArray())
     {
-      pushString((byte[]) obj);
+   	 pushJavaArray(obj);
     }
     else if (obj.getClass().isArray())
     {
@@ -1178,20 +1178,5 @@ public class LuaState
     
     // if all checks fail, return null
     return null;	  
-	}
-
-	public String dumpStack() {
-		int n = getTop();
-		StringBuilder sb = new StringBuilder();
-		for (int i = 1; i <= n; i++) {
-			int t = type(i);
-			sb.append(i).append(": ").append(typeName(t));
-			if (t == LUA_TNUMBER)
-				sb.append(" = ").append(toNumber(i));
-			else if (t == LUA_TSTRING)
-				sb.append(" = '").append(toString(i)).append("'");
-			sb.append("\n");
-		}
-		return sb.toString();
 	}
 }

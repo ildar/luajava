@@ -1,5 +1,5 @@
 /*
- * $Id: Console.java,v 1.8 2007-09-17 19:28:40 thiago Exp $
+ * $Id: Console.java,v 1.8 2007/09/17 19:28:40 thiago Exp $
  * Copyright (C) 2003-2007 Kepler Project.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
